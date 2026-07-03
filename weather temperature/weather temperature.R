@@ -18,7 +18,10 @@ library(gridExtra)
 source("functions.R")
 source("https://raw.githubusercontent.com/KevinWilk/Beyond-average-warming/main/Mod_biLocPol.R")
 
-load("weather temperature/Berlin_lag0_setup.RData")
+
+#### First run 'weather temperature/data_sets.R' ##### to obtain 'weather temperature/Berlin_lag0_setup.RData' ####
+load("weather temperature/Berlin_lag0_setup.RData")                                                            ####
+###################################################################################################################
 
 p.eval = 96
 x.eval.grid = 0:p.eval/p.eval
@@ -170,7 +173,9 @@ ggsave(paste0("Figures/estimation_marginal_PCBF.png"), width = 22, height = 14, 
 ###### Long run  ###
 ####################
 
-load("weather temperature/Berlin_lagb_setup.RData")
+#### First run 'weather temperature/data_sets.R' ##### to obtain 'weather temperature/Berlin_lagb_setup.RData' ####
+load("weather temperature/Berlin_lagb_setup.RData")                                                            ####
+###################################################################################################################
 
 
 x.eval.grid = tibble(TIME = hms::as_hms(c(seq(from = as.POSIXct("1970-01-01 00:00:00"),to   = as.POSIXct("1970-01-01 23:45:00"),by   = "15 min"), as.POSIXct("1970-01-01 23:59:59"))))
