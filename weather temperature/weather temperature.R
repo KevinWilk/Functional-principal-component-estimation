@@ -69,7 +69,7 @@ N = 1000                    # Repetitions of procdure                    ######
 ###############################################################################
 
 options(future.globals.maxSize = 64 * 1024^3) 
-plan(multisession, workers = 30) 
+plan(multisession, workers = 15) # up to 30 kernels possible
   
 # January
 jan.mb = mb.PCBF(N, jan.data , list(w0), jan.cov.lag0, quadrature = "Simpson", k.max = 3, dependent = T, periodic = T, m = 144)
@@ -204,7 +204,7 @@ N = 1000                    # Repetitions of procdure                    ####
 #############################################################################
 
 options(future.globals.maxSize = 64 * 1024^3) 
-plan(multisession, workers = 30) 
+plan(multisession, workers = 15) 
 
 # January
 jan.mb.LR = mb.PCBF(N, jan.data , list(w0, w1, w2), lr.Gamma.d.month[[1]], quadrature = "Simpson", k.max = 3, dependent = T, periodic = T, m = 144, max.lag = max.lag[1,2])
