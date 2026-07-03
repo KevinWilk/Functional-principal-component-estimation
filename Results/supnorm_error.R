@@ -19,7 +19,7 @@ library(dplyr)
 library(tibble)
 library(gridExtra)
 
-source("Mod_biLocPol.R")
+source("https://raw.githubusercontent.com/KevinWilk/Beyond-average-warming/main/Mod_biLocPol.R")
 source("functions.R")
 
 ###############################################################
