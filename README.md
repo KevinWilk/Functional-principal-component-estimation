@@ -5,7 +5,7 @@ This repository contains all numerical results and code implementations associat
 <!-- badges: start -->
 <!-- badges: end -->
 
- Hajo Holzmann and Kevin Wilk [arxiv](http://arxiv.org/abs/2607.01931). 
+ Hajo Holzmann and Kevin Wilk [arXiv](http://arxiv.org/abs/2607.01931). 
 
 Install the package `biLocPol` of which you can get the development version from [GitHub](https://github.com/mbrgr/biLocPol) with:
 
