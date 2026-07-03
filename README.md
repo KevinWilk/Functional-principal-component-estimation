@@ -19,9 +19,6 @@ devtools::install_github("mbrgr/biLocPol")
 source("https://raw.githubusercontent.com/KevinWilk/Beyond-average-warming/main/Mod_biLocPol.R")
 ```
 
-## Structure
-
-
 ## Comments
 
 Note that simulations and the application are paralallized with the “future.apply” and “future” package and performed using 
