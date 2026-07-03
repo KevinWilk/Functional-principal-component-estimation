@@ -2,42 +2,9 @@
 ####################### function  ####################################
 ######################################################################
 
-mu = function(x){
-  x = 2*x - 1
-  return(sin(3*pi*x)*exp(-2*abs(x)))
+mu0 = function(x){
+  return(rep(0, length(x)))
 }
-
-
-
-
-#### plotly Layout ####
-
-front_layout = function(p, x = -2, y = -1.2, z = .3) {
-  p |> layout(
-    scene = list(
-      camera = list(eye = list(x = x, y = y, z = z)),# controls the angle
-      xaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14)),
-      yaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14)),
-      zaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14))),
-    showlegend = F
-  )
-}
-
-front_layout_application = function(p, x = -2, y = -1.2, z = 1.3) {
-  p |> layout(
-    scene = list(
-      camera = list(eye = list(x = x, y = y, z = z)),# controls the angle
-      xaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14)),
-      yaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14)),
-      zaxis = list(title = list(text = "", font = list(size = 24)), tickfont = list(size = 14))),
-    showlegend = F
-  )
-}
-
-
-
-
-
 
 #################################################
 ################  Ornstein-Uhlenbeck  ###########
@@ -228,120 +195,6 @@ h.optim.cov = function(N, n, p, p.eval, h.seq,
   
   return(list(bw.min = h.seq[which.min(apply(mean_sup, 2, mean))], h_list = h_list)) 
 }
-
-
-######################################################
-##### K-fold cross validation (Old: not to use)  #####
-######################################################
-
-
-k.fold.cv.cov = function(N, n, p, h.seq, K = 5,
-                         k = 1, m = 1, w.parallel = T, 
-                         f, r.process, process.arg, eps.arg,
-                         quadrature = "trapezoidal"){
-  
-  if(quadrature %in% c("trapezoidal","Simpson")){
-    
-    if(p %% 2 == 0){ p = p + 1 } # For Simpson rule
-    
-    grp = sample(rep(1:K, ceiling(n/K)), n)
-    x.design = 0:(p-1)/(p-1)
-    
-    help = function(h){
-      w_h = local.polynomial.weights( p , h, p.eval = p, m = m, parallel = w.parallel, parallel.environment = F, grid.type = "less")
-      max_diff = numeric(K)
-      
-      omega_list  = sapply(1:k, omega_k, theta = theta)
-      lambda_list = sapply(omega_list, function(x, sigma, theta){sigma^2/(theta^2+x^2)}, sigma = sigma, theta = theta)
-      phi_k       = sapply(omega_list, function(x, omega, theta){ phi_k(x , omega, theta)  }, theta = theta, x = x.design)[,k]
-      
-      # Quadrature formula
-      if( quadrature == "trapezoidal"){     quad.w = trapezoid_weights(p) }
-      else if(quadrature == "Simpson"){     quad.w = simpson_weights(p)   }
-      
-      future_replicate(N, {
-        
-        Y = FDA_observation(n, x.design, f, r.process = r.process, process.arg = process.arg, eps.arg = eps.arg)
-        
-        for(kk in 1:K){
-          test.grp      = matrix(observation.transformation(Y[grp == kk,], grid.type = "full"), p, p)
-          train.grp     = eval.weights(w_h,observation.transformation(Y[grp != kk,], grid.type = "less"))
-          
-          test.result   = eigen( diag(sqrt(quad.w)) %*% test.grp  %*% diag(sqrt(quad.w)), symmetric = TRUE) 
-          train.result  = eigen( diag(sqrt(quad.w)) %*% train.grp %*% diag(sqrt(quad.w)), symmetric = TRUE) 
-          
-          test.eig.val  = test.result$values[k]
-          train.eig.val = train.result$values[k]
-          
-          sign    = as.vector(sign(crossprod(train.result$vectors[,k], test.result$vectors[,k])))
-          
-          test.eig.vec  = test.result$vectors[,k]  * sqrt(quad.w)
-          test.eig.vec  = test.grp   %*% ( test.eig.vec  * 1/test.eig.val * sign)
-          
-          train.eig.vec = train.result$vectors[,k] * sqrt(quad.w)
-          train.eig.vec = train.grp  %*% ( train.eig.vec * 1/train.eig.val)
-          
-          max_diff[kk] = max(abs((train.eig.vec - test.eig.vec)))
-        }
-        
-        mean(max_diff)
-        
-      }, future.seed = T)
-    }
-    
-    
-    mean_sup = sapply(h.seq, help)
-    
-    return(h.seq[apply(mean_sup, 1, which.min)])
-    
-  }else{stop("Quadrature formula not implemented")}
-}
-
-
-
-##########################################################################################################
-##########################################################################################################
-#################  Berger and Holzmann 2025 ##############################################################
-##########################################################################################################
-##########################################################################################################
-
-
-
-
-
-k_fold_cv_simulation = function(N, n, p, h.seq, K = 5, m = 1, w.parallel = T, theta = 2, sigma = 3, sd = 0.75){
-  
-  grp = sample(rep(1:K, ceiling(n/K)), n)
-  
-  help = function(h){
-    w_h = local_polynomial_weights(p, h, p.eval = p, m = m, parallel = w.parallel, parallel.environment = F)
-    max_diff = numeric(K)
-    
-    future_replicate(N, {
-      Y = FDA_observation(n, x.design = (1:p - 0.5)/p, f = biLocPol::mu,
-                          r.process = OU, process.arg = list(alpha = theta, sigma = sigma, x0 = 0), eps.arg = list(sd = sd))
-      for(kk in 1:K){
-        test_grp     = matrix(observation_transformation(Y[grp == kk,], grid.type = "full"), p, p)
-        train_grp    = observation_transformation(Y[grp != kk,], grid.type = "less")
-        pred         = eval_weights(w_h, train_grp)
-        max_diff[kk] = max(abs((test_grp - pred)[!as.logical(diag(p))]))
-      }
-      mean(max_diff)
-    }, future.seed = T)
-  }
-  
-  
-  mean_sup = sapply(h.seq, help)
-  
-  h.seq[apply(mean_sup, 1, which.min)]
-}
-
-##########################################################################################################
-##########################################################################################################
-##########################################################################################################
-##########################################################################################################
-##########################################################################################################
-
 
 
 
